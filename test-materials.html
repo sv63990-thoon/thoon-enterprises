@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Materials Dropdown Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Materials Dropdown Test</h1>
+    
+    <div class="bg-white p-4 rounded shadow">
+        <table class="w-full border">
+            <tr class="bg-gray-100">
+                <th class="border p-2">Category</th>
+                <th class="border p-2">Type</th>
+                <th class="border p-2">Brand</th>
+                <th class="border p-2">Size</th>
+                <th class="border p-2">Units</th>
+                <th class="border p-2">Qty</th>
+                <th class="border p-2">Rate</th>
+                <th class="border p-2">Amount</th>
+            </tr>
+            <tr>
+                <td class="border p-2">
+                    <select class="w-full p-1 border">
+                        <option value="">Select Category</option>
+                        <option value="Cement">Cement</option>
+                        <option value="Steel">Steel</option>
+                        <option value="Bricks">Bricks</option>
+                        <option value="Blocks">Blocks</option>
+                        <option value="Sand">Sand</option>
+                        <option value="Aggregate">Aggregate</option>
+                    </select>
+                </td>
+                <td class="border p-2">
+                    <select class="w-full p-1 border">
+                        <option value="">Select Type</option>
+                        <option value="PPC">PPC</option>
+                        <option value="OPC 43">OPC 43</option>
+                        <option value="TMT">TMT</option>
+                    </select>
+                </td>
+                <td class="border p-2">
+                    <select class="w-full p-1 border">
+                        <option value="">Select Brand</option>
+                        <option value="Ramco">Ramco</option>
+                        <option value="Ultratech">Ultratech</option>
+                        <option value="ACC">ACC</option>
+                    </select>
+                </td>
+                <td class="border p-2">
+                    <select class="w-full p-1 border">
+                        <option value="">Select Size</option>
+                        <option value="50kg">50kg</option>
+                        <option value="25kg">25kg</option>
+                        <option value="8mm">8mm</option>
+                        <option value="10mm">10mm</option>
+                    </select>
+                </td>
+                <td class="border p-2">
+                    <select class="w-full p-1 border">
+                        <option value="">Select Units</option>
+                        <option value="Bags">Bags</option>
+                        <option value="Ton">Ton</option>
+                        <option value="Pieces">Pieces</option>
+                    </select>
+                </td>
+                <td class="border p-2">
+                    <input type="number" class="w-full p-1 border" placeholder="Qty" />
+                </td>
+                <td class="border p-2">
+                    <input type="number" class="w-full p-1 border" placeholder="Rate" />
+                </td>
+                <td class="border p-2">
+                    <input type="text" readonly class="w-full p-1 border bg-gray-100" placeholder="Amount" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <script>
+        // Test the cascading logic
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', function() {
+                if (this.name === 'category') {
+                    console.log('Category changed to:', this.value);
+                    // Reset dependent fields
+                    document.querySelector('[name="type"]').value = '';
+                    document.querySelector('[name="brand"]').value = '';
+                    document.querySelector('[name="size"]').value = '';
+                    document.querySelector('[name="units"]').value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

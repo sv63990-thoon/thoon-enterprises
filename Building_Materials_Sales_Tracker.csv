@@ -1,0 +1,10 @@
+Date,Invoice No,Material Name,Category,Quantity,Unit,Buying Price (per unit),Total Buying Cost,Selling Price (per unit),Total Selling Revenue,Profit/Loss,Profit Margin %,Customer Name,Supplier Name,Payment Status,Notes
+2026-02-16,INV-001,Portland Cement,Cement,100,Bags,350,=E2*F2,420,=E2*I2,=J2-H2,=K2/J2*100,ABC Builders,XYZ Suppliers,Paid,50kg bags
+2026-02-16,INV-002,TMT Steel Bars,Steel,500,Kg,55,=E3*F3,68,=E3*I3,=J3-H3,=K3/J3*100,DEF Construction,Steel Ltd,Pending,12mm diameter
+2026-02-16,INV-003,Red Bricks,Bricks,5000,Pieces,8,=E4*F4,10.5,=E4*I4,=J4-H4,=K4/J4*100,GHI Contractors,Brick Factory,Paid,Standard size
+2026-02-16,INV-004,River Sand,Sand,10,Ton,800,=E5*F5,1050,=E5*I5,=J5-H5,=K5/J5*100,JKL Developers,Sand Quarry,Paid,M-Sand
+2026-02-16,INV-005,Concrete Blocks,Blocks,1000,Pieces,25,=E6*F6,32,=E6*I6,=J6-H6,=K6/J6*100,MNO Builders,Block Supplier,Partial,6 inch
+,,,,,,,,,,,,,,,,
+,,,,,,SUMMARY,,,,,,,,,
+,,,,,,Total Buying Cost:,=SUM(H2:H6),,Total Revenue:,=SUM(J2:J6),,,,
+,,,,,,Total Profit/Loss:,=SUM(K2:K6),,Avg Profit Margin:,=AVERAGE(L2:L6),,,

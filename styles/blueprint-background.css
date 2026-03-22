@@ -1,0 +1,177 @@
+/* Engineering Blueprint Background - Global Layout */
+
+:root {
+  --blueprint-overlay: rgba(255, 255, 255, 0.88);
+  --blueprint-image: url('/blueprint-construction-background.png');
+}
+
+/* Global blueprint background */
+.blueprint-bg {
+  background-image: 
+    var(--blueprint-image),
+    linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(238, 242, 255, 0.92));
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Fallback pattern if image doesn't load */
+.blueprint-bg-overlay {
+  background-image: 
+    /* Blueprint grid pattern */
+    linear-gradient(rgba(31, 42, 48, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 42, 48, 0.2) 1px, transparent 1px),
+    /* Diagonal blueprint lines */
+    linear-gradient(45deg, rgba(31, 42, 48, 0.1) 25%, transparent 25%, transparent 75%, rgba(31, 42, 48, 0.1) 75%, rgba(31, 42, 48, 0.1)),
+    linear-gradient(-45deg, rgba(31, 42, 48, 0.1) 25%, transparent 25%, transparent 75%, rgba(31, 42, 48, 0.1) 75%, rgba(31, 42, 48, 0.1)),
+    /* Construction image */
+    var(--blueprint-image);
+  background-size: 
+    40px 40px,  /* Grid */
+    40px 40px,  /* Grid */
+    80px 80px,  /* Diagonal */
+    80px 80px,  /* Diagonal */
+    cover;       /* Image */
+  background-position: 
+    0 0, 0 0,  /* Grid */
+    0 0, 0 0,  /* Diagonal */
+    center;      /* Image */
+  background-repeat: 
+    repeat, repeat,  /* Grid */
+    repeat, repeat,  /* Diagonal */
+    no-repeat;     /* Image */
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+  /* Fallback background color - more visible for testing */
+  background-color: #d1d5db;
+}
+
+.blueprint-bg-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--blueprint-overlay);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Ensure content containers remain clean */
+.blueprint-bg .card,
+.blueprint-bg .bg-white,
+.blueprint-bg input,
+.blueprint-bg textarea,
+.blueprint-bg select,
+.blueprint-bg table,
+.blueprint-bg .bg-white\/60,
+.blueprint-bg .bg-white\/70,
+.blueprint-bg .bg-white\/90 {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Enhanced glass effect for blueprint background */
+.blueprint-glass {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(31, 42, 48, 0.12),
+    0 4px 16px rgba(31, 42, 48, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Special styling for headers on blueprint background */
+.blueprint-bg .bg-indigo-950 {
+  background: rgba(30, 27, 75, 0.95) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.blueprint-bg .border-indigo-900 {
+  border-color: rgba(49, 46, 129, 0.8) !important;
+}
+
+/* Performance optimizations */
+.blueprint-bg {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .blueprint-bg {
+    background-size: cover, cover;
+    background-position: center, center;
+  }
+  
+  .blueprint-bg-overlay::before {
+    background: rgba(255, 255, 255, 0.92); /* Slightly more opaque on mobile */
+  }
+}
+
+/* High DPI optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .blueprint-bg {
+    background-image: 
+      var(--blueprint-image),
+      linear-gradient(135deg, rgba(238, 242, 255, 0.97), rgba(238, 242, 255, 0.94));
+  }
+}
+
+/* Print styles */
+@media print {
+  .blueprint-bg,
+  .blueprint-bg-overlay {
+    background: white !important;
+    background-image: none !important;
+  }
+  
+  .blueprint-bg::before,
+  .blueprint-bg-overlay::before {
+    display: none !important;
+  }
+}
+
+/* Loading state */
+.blueprint-bg.loading {
+  background-color: #f8fafc;
+}
+
+.blueprint-bg.loading::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(31, 42, 48, 0.1), transparent);
+  animation: blueprint-loading 1.5s ease-in-out infinite;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+@keyframes blueprint-loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Accessibility - reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .blueprint-bg {
+    background-attachment: scroll, scroll;
+  }
+  
+  .blueprint-bg.loading::before {
+    animation: none;
+  }
+}

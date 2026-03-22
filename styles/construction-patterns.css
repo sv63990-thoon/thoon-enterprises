@@ -1,0 +1,216 @@
+/* Engineering & Construction Background Patterns */
+
+:root {
+  --construction-pattern: #1f2a30;
+  --pattern-opacity: 0.08;
+  --overlay-opacity: 0.92;
+}
+
+/* Blueprint Grid Pattern */
+.blueprint-grid {
+  background-image: 
+    /* Main grid lines */
+    linear-gradient(rgba(31, 42, 48, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 42, 48, 0.03) 1px, transparent 1px),
+    /* Subtle diagonal lines */
+    linear-gradient(45deg, rgba(31, 42, 48, 0.02) 25%, transparent 25%, transparent 75%, rgba(31, 42, 48, 0.02) 75%, rgba(31, 42, 48, 0.02)),
+    linear-gradient(-45deg, rgba(31, 42, 48, 0.02) 25%, transparent 25%, transparent 75%, rgba(31, 42, 48, 0.02) 75%, rgba(31, 42, 48, 0.02)),
+    /* Base overlay */
+    linear-gradient(135deg, rgba(238, 242, 255, var(--overlay-opacity)), rgba(238, 242, 255, var(--overlay-opacity)));
+  background-size: 
+    40px 40px,  /* Main grid */
+    40px 40px,  /* Main grid */
+    80px 80px,  /* Diagonal pattern */
+    80px 80px,  /* Diagonal pattern */
+    100% 100%;  /* Overlay */
+  background-position: 
+    0 0, 0 0,    /* Main grid */
+    0 0, 0 0,    /* Diagonal pattern */
+    0 0;          /* Overlay */
+  background-attachment: fixed;
+}
+
+/* Structural Framework Pattern */
+.structural-framework {
+  background-image: 
+    /* Vertical structural lines */
+    linear-gradient(90deg, transparent 24%, rgba(31, 42, 48, 0.02) 25%, rgba(31, 42, 48, 0.02) 26%, transparent 27%, transparent 74%, rgba(31, 42, 48, 0.02) 75%, rgba(31, 42, 48, 0.02) 76%, transparent 77%, transparent),
+    /* Horizontal structural lines */
+    linear-gradient(transparent 24%, rgba(31, 42, 48, 0.02) 25%, rgba(31, 42, 48, 0.02) 26%, transparent 27%, transparent 74%, rgba(31, 42, 48, 0.02) 75%, rgba(31, 42, 48, 0.02) 76%, transparent 77%, transparent),
+    /* Corner brackets */
+    radial-gradient(circle at 20% 20%, rgba(31, 42, 48, 0.03) 0%, transparent 2%),
+    radial-gradient(circle at 80% 20%, rgba(31, 42, 48, 0.03) 0%, transparent 2%),
+    radial-gradient(circle at 20% 80%, rgba(31, 42, 48, 0.03) 0%, transparent 2%),
+    radial-gradient(circle at 80% 80%, rgba(31, 42, 48, 0.03) 0%, transparent 2%),
+    /* Base overlay */
+    linear-gradient(135deg, rgba(238, 242, 255, var(--overlay-opacity)), rgba(238, 242, 255, var(--overlay-opacity)));
+  background-size: 
+    100px 100px,  /* Vertical lines */
+    100px 100px,  /* Horizontal lines */
+    200px 200px,  /* Corner brackets */
+    200px 200px,  /* Corner brackets */
+    200px 200px,  /* Corner brackets */
+    200px 200px,  /* Corner brackets */
+    100% 100%;    /* Overlay */
+  background-position: 
+    0 0, 0 0,    /* Structural lines */
+    0 0, 0 0, 0 0, 0 0,  /* Corner brackets */
+    0 0;          /* Overlay */
+  background-attachment: fixed;
+}
+
+/* Rebar Pattern */
+.rebar-pattern {
+  background-image: 
+    /* Rebar-style diagonal lines */
+    repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(31, 42, 48, 0.02) 10px, rgba(31, 42, 48, 0.02) 12px, transparent 12px, transparent 22px),
+    repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(31, 42, 48, 0.02) 10px, rgba(31, 42, 48, 0.02) 12px, transparent 12px, transparent 22px),
+    /* Cross-hatching */
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(31, 42, 48, 0.01) 20px, rgba(31, 42, 48, 0.01) 21px, transparent 21px, transparent 40px),
+    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(31, 42, 48, 0.01) 20px, rgba(31, 42, 48, 0.01) 21px, transparent 21px, transparent 40px),
+    /* Base overlay */
+    linear-gradient(135deg, rgba(238, 242, 255, var(--overlay-opacity)), rgba(238, 242, 255, var(--overlay-opacity)));
+  background-size: 
+    44px 44px,    /* Diagonal rebar */
+    44px 44px,    /* Diagonal rebar */
+    40px 40px,    /* Cross-hatch */
+    40px 40px,    /* Cross-hatch */
+    100% 100%;    /* Overlay */
+  background-position: 
+    0 0, 0 0,    /* Rebar patterns */
+    0 0, 0 0,    /* Cross-hatch */
+    0 0;          /* Overlay */
+  background-attachment: fixed;
+}
+
+/* Technical Drawing Pattern */
+.technical-drawing {
+  background-image: 
+    /* Measurement lines */
+    linear-gradient(90deg, transparent 49.5%, rgba(31, 42, 48, 0.02) 49.5%, rgba(31, 42, 48, 0.02) 50.5%, transparent 50.5%, transparent),
+    linear-gradient(transparent 49.5%, rgba(31, 42, 48, 0.02) 49.5%, rgba(31, 42, 48, 0.02) 50.5%, transparent 50.5%, transparent),
+    /* Dotted grid */
+    radial-gradient(circle, rgba(31, 42, 48, 0.015) 1px, transparent 1px),
+    /* Angular guidelines */
+    linear-gradient(30deg, transparent 48%, rgba(31, 42, 48, 0.01) 48%, rgba(31, 42, 48, 0.01) 52%, transparent 52%, transparent),
+    linear-gradient(150deg, transparent 48%, rgba(31, 42, 48, 0.01) 48%, rgba(31, 42, 48, 0.01) 52%, transparent 52%, transparent),
+    /* Base overlay */
+    linear-gradient(135deg, rgba(238, 242, 255, var(--overlay-opacity)), rgba(238, 242, 255, var(--overlay-opacity)));
+  background-size: 
+    100px 100px,  /* Measurement lines */
+    100px 100px,  /* Measurement lines */
+    20px 20px,    /* Dotted grid */
+    200px 200px,  /* Angular guidelines */
+    200px 200px,  /* Angular guidelines */
+    100% 100%;    /* Overlay */
+  background-position: 
+    0 0, 0 0,    /* Measurement lines */
+    0 0,          /* Dotted grid */
+    0 0, 0 0,    /* Angular guidelines */
+    0 0;          /* Overlay */
+  background-attachment: fixed;
+}
+
+/* Default construction background - combines best elements */
+.construction-bg {
+  background-image: 
+    /* Main blueprint grid */
+    linear-gradient(rgba(31, 42, 48, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 42, 48, 0.025) 1px, transparent 1px),
+    /* Structural framework */
+    linear-gradient(90deg, transparent 24%, rgba(31, 42, 48, 0.015) 25%, rgba(31, 42, 48, 0.015) 26%, transparent 27%, transparent 74%, rgba(31, 42, 48, 0.015) 75%, rgba(31, 42, 48, 0.015) 76%, transparent 77%, transparent),
+    linear-gradient(transparent 24%, rgba(31, 42, 48, 0.015) 25%, rgba(31, 42, 48, 0.015) 26%, transparent 27%, transparent 74%, rgba(31, 42, 48, 0.015) 75%, rgba(31, 42, 48, 0.015) 76%, transparent 77%, transparent),
+    /* Corner detail elements */
+    radial-gradient(circle at 20% 20%, rgba(31, 42, 48, 0.02) 0%, transparent 2%),
+    radial-gradient(circle at 80% 20%, rgba(31, 42, 48, 0.02) 0%, transparent 2%),
+    radial-gradient(circle at 20% 80%, rgba(31, 42, 48, 0.02) 0%, transparent 2%),
+    radial-gradient(circle at 80% 80%, rgba(31, 42, 48, 0.02) 0%, transparent 2%),
+    /* Soft gradient overlay */
+    linear-gradient(135deg, rgba(238, 242, 255, 0.95) 0%, rgba(238, 242, 255, 0.92) 50%, rgba(238, 242, 255, 0.95) 100%);
+  background-size: 
+    60px 60px,    /* Main grid */
+    60px 60px,    /* Main grid */
+    120px 120px,   /* Structural framework */
+    120px 120px,   /* Structural framework */
+    300px 300px,   /* Corner elements */
+    300px 300px,   /* Corner elements */
+    300px 300px,   /* Corner elements */
+    300px 300px,   /* Corner elements */
+    100% 100%;     /* Overlay */
+  background-position: 
+    0 0, 0 0,     /* Grid */
+    0 0, 0 0,     /* Framework */
+    0 0, 0 0, 0 0, 0 0,  /* Corner elements */
+    0 0;           /* Overlay */
+  background-attachment: fixed;
+  background-repeat: repeat;
+}
+
+/* Animation for subtle movement */
+@keyframes blueprint-shift {
+  0%, 100% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+  50% { background-position: 1px 1px, 1px 1px, 2px 2px, 2px 2px, 5px 5px, 5px 5px, 5px 5px, 5px 5px, 0 0; }
+}
+
+/* Subtle animated version */
+.construction-bg-animated {
+  background-image: 
+    /* Main blueprint grid */
+    linear-gradient(rgba(31, 42, 48, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 42, 48, 0.02) 1px, transparent 1px),
+    /* Structural framework */
+    linear-gradient(90deg, transparent 24%, rgba(31, 42, 48, 0.012) 25%, rgba(31, 42, 48, 0.012) 26%, transparent 27%, transparent 74%, rgba(31, 42, 48, 0.012) 75%, rgba(31, 42, 48, 0.012) 76%, transparent 77%, transparent),
+    linear-gradient(transparent 24%, rgba(31, 42, 48, 0.012) 25%, rgba(31, 42, 48, 0.012) 26%, transparent 27%, transparent 74%, rgba(31, 42, 48, 0.012) 75%, rgba(31, 42, 48, 0.012) 76%, transparent 77%, transparent),
+    /* Corner detail elements */
+    radial-gradient(circle at 20% 20%, rgba(31, 42, 48, 0.015) 0%, transparent 2%),
+    radial-gradient(circle at 80% 20%, rgba(31, 42, 48, 0.015) 0%, transparent 2%),
+    radial-gradient(circle at 20% 80%, rgba(31, 42, 48, 0.015) 0%, transparent 2%),
+    radial-gradient(circle at 80% 80%, rgba(31, 42, 48, 0.015) 0%, transparent 2%),
+    /* Soft gradient overlay */
+    linear-gradient(135deg, rgba(238, 242, 255, 0.95) 0%, rgba(238, 242, 255, 0.92) 50%, rgba(238, 242, 255, 0.95) 100%);
+  background-size: 
+    60px 60px,    /* Main grid */
+    60px 60px,    /* Main grid */
+    120px 120px,   /* Structural framework */
+    120px 120px,   /* Structural framework */
+    300px 300px,   /* Corner elements */
+    300px 300px,   /* Corner elements */
+    300px 300px,   /* Corner elements */
+    300px 300px,   /* Corner elements */
+    100% 100%;     /* Overlay */
+  background-position: 
+    0 0, 0 0,     /* Grid */
+    0 0, 0 0,     /* Framework */
+    0 0, 0 0, 0 0, 0 0,  /* Corner elements */
+    0 0;           /* Overlay */
+  background-attachment: fixed;
+  background-repeat: repeat;
+  animation: blueprint-shift 20s ease-in-out infinite;
+}
+
+/* Ensure content containers remain clean */
+.construction-bg .card,
+.construction-bg .bg-white,
+.construction-bg input,
+.construction-bg textarea,
+.construction-bg select,
+.construction-bg table {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .construction-bg {
+    background-size: 
+      40px 40px,    /* Smaller grid for mobile */
+      40px 40px,
+      80px 80px,     /* Smaller framework */
+      80px 80px,
+      200px 200px,   /* Smaller corner elements */
+      200px 200px,
+      200px 200px,
+      200px 200px,
+      100% 100%;
+  }
+}

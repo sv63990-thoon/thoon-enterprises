@@ -1,0 +1,128 @@
+@import "tailwindcss";
+@import "../styles/blueprint-background.css";
+
+:root {
+  --background: #eef2ff;
+  --foreground: #1e1b4b;
+  --indigo-950: #1e1b4b;
+  --indigo-900: #312e81;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+}
+
+/* Modal Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-up {
+  animation: scale-up 0.3s ease-out;
+}
+
+/* Golden spark moving along border animation - More prominent */
+@keyframes border-travel {
+  0% {
+    top: -3px;
+    left: -3px;
+    opacity: 1;
+  }
+  25% {
+    top: -3px;
+    left: calc(100% - 9px);
+    opacity: 1;
+  }
+  50% {
+    top: calc(100% - 9px);
+    left: calc(100% - 9px);
+    opacity: 1;
+  }
+  75% {
+    top: calc(100% - 9px);
+    left: -3px;
+    opacity: 1;
+  }
+  100% {
+    top: -3px;
+    left: -3px;
+    opacity: 1;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border-travel {
+  animation: border-travel 4s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-indigo-950: var(--indigo-950);
+  --color-indigo-900: var(--indigo-900);
+  --color-amber-400: var(--amber-400);
+  --color-amber-500: var(--amber-500);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer utilities {
+  .bg-gold-gradient {
+    background: linear-gradient(to right, #fcd34d, #f59e0b, #d97706, #fcd34d);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s linear infinite;
+  }
+
+  .glass-morphism {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-lg border border-slate-800 shadow-2xl;
+  }
+
+  @keyframes shine {
+    to {
+      background-position: 200% center;
+    }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
