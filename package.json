@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node test_admin_login.js",
+    "deploy:prod": "vercel --prod",
+    "deploy:preview": "vercel",
+    "validate": "npm run test && npm run build"
   },
   "dependencies": {
     "clsx": "^2.1.1",

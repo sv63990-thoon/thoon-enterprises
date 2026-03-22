@@ -6,9 +6,9 @@
       "email": "thoon_admin@org.in",
       "role": "admin",
       "status": "active",
-      "passwordHash": "2a031506aa3cf294e8b7718e299b4eb9208701131f5c48ea055ce9d4637c19083a58af1dc48acc634d10f5e96a47a7d332b0da584c2a5d4774b5d8b5f0e5148d",
-      "salt": "4972f01d65846e73fed5c580556f3f6f",
-      "lastLogin": "2026-03-22T12:07:55.903Z"
+      "passwordHash": "57c71818ee06307b311d146caf0d228671fcb965261abe7e1e91a7ee92fa67bb68001c663722cf314600b1233a0ce5d368160c64e09943790878d8457d4169ad",
+      "salt": "d75dc4976a4786d1b6476484f8449ca5ca0b4db59460caaddb942e5d49797ffc",
+      "lastLogin": "2026-03-22T18:46:54.774Z"
     },
     {
       "id": "1abd902b-a357-4639-bc6a-fa9eee5b7291",

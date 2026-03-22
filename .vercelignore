@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+out
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development and test files (keep data folder!)
+test_*.js
+update_*.js
+temp_line.txt
+test_*.html
+
+# Build artifacts
+*.log
+
+# NOTE: data/ folder is NOT ignored - it will be included in deployment
