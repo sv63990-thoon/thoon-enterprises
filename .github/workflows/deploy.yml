@@ -39,13 +39,13 @@ jobs:
         node test_admin_login.js
         
     - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
+      id: deploy
+      uses: vercel/action@v1
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.ORG_ID }}
         vercel-project-id: ${{ secrets.PROJECT_ID }}
-        vercel-args: '--prod --yes'
-        scope: ${{ secrets.ORG_ID }}
+        vercel-args: '--prod'
         
   deploy-preview:
     runs-on: ubuntu-latest
@@ -65,10 +65,8 @@ jobs:
       run: npm ci
       
     - name: Deploy Preview to Vercel
-      uses: amondnet/vercel-action@v25
+      uses: vercel/action@v1
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.ORG_ID }}
         vercel-project-id: ${{ secrets.PROJECT_ID }}
-        vercel-args: '--yes'
-        scope: ${{ secrets.ORG_ID }}
