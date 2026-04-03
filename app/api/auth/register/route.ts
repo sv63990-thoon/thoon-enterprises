@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { sqliteDb } from '@/lib/sqlite-db';
 import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         }
 
         // Check if email already exists
-        const existingUser = db.findUserByEmail(email.toLowerCase().trim());
+        const existingUser = sqliteDb.findUserByEmail(email.toLowerCase().trim());
         if (existingUser) {
             return NextResponse.json(
                 { error: 'Email already registered' },
@@ -56,41 +56,19 @@ export async function POST(request: Request) {
         }
 
         // Create user with pending status
-        const user = db.createUser(name, email.toLowerCase().trim(), password, role, {
-            phone,
-            companyName,
-            address: businessAddress,
-            gstin: gstNumber.toUpperCase(),
-            experienceYears: role === 'seller' ? parseInt(yearsInBusiness) : undefined
+        const user = sqliteDb.createUser({
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            phone: phone.trim(),
+            role: role as 'buyer' | 'seller',
+            companyName: companyName.trim(),
+            address: `${businessAddress.trim()}, ${city.trim()}, ${state.trim()} - ${pincode.trim()}`,
+            gstin: gstNumber.trim().toUpperCase(),
+            experienceYears: yearsInBusiness ? parseInt(yearsInBusiness) : 0
         });
 
-        // Store additional profile data in a separate file or extend the user record
-        // For now, we'll store it in the user record as additional properties
-        const extendedUserData = {
-            ...user,
-            city,
-            state,
-            pincode,
-            accountStatus: 'inactive',
-            approvalStatus: 'pending',
-            registrationDate: new Date().toISOString(),
-            // Store role-specific data
-            ...(role === 'seller' && {
-                materialCategories,
-                deliveryAreas,
-                businessType,
-                warehouseLocation
-            }),
-            ...(role === 'buyer' && {
-                projectType,
-                estimatedRequirement: estimatedMaterialRequirement,
-                projectLocation,
-                constructionStage
-            })
-        };
-
         // Log registration
-        db.logAction(user.id, 'Register', `New ${role} account created: ${name} (${email}) - Status: pending approval`);
+        sqliteDb.logAction(user.id, 'Register', `New ${role} account created: ${name} (${email}) - Status: pending approval`);
 
         // Send registration email to user
         await sendRegistrationEmail(email, name, role);
