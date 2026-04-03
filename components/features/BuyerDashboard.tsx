@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ProfileGuard } from '@/components/guards/ProfileGuard';
 import { Package, Clock, Plus, MapPin, Search, Star, Check, Info, Truck, Eye, Trash2, Loader2, ShoppingCart, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -204,8 +205,9 @@ export default function BuyerDashboard({ user }: { user: any }) {
     }
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-start bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-slate-200/60 relative overflow-hidden">
+        <ProfileGuard action="request-quotes">
+            <div className="space-y-8">
+                <div className="flex justify-between items-start bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-slate-200/60 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#caa75e]/5 rounded-full blur-[100px] -mr-32 -mt-32" />
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-3">
@@ -501,7 +503,8 @@ export default function BuyerDashboard({ user }: { user: any }) {
                     ))}
                 </div>
             </Modal>
-        </div>
+            </div>
+        </ProfileGuard>
     );
 }
 
@@ -782,28 +785,30 @@ function OrderCard({ order, onRefresh, setViewingInvoice, setViewingTracking }: 
 // Invoice Component (placeholder)
 function Invoice({ order }: { order: any }) {
     return (
-        <div className="bg-white p-8 rounded-2xl">
-            <h2 className="text-2xl font-bold text-[#1f2a30] mb-6">Invoice</h2>
-            <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-sm text-slate-600">Order ID</p>
-                        <p className="font-bold text-[#1f2a30]">{order.id}</p>
+        <ProfileGuard action="access-dashboard">
+            <div className="bg-white p-8 rounded-2xl">
+                <h2 className="text-2xl font-bold text-[#1f2a30] mb-6">Invoice</h2>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <p className="text-sm text-slate-600">Order ID</p>
+                            <p className="font-bold text-[#1f2a30]">{order.id}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-slate-600">Date</p>
+                            <p className="font-bold text-[#1f2a30]">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm text-slate-600">Date</p>
-                        <p className="font-bold text-[#1f2a30]">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    <div className="border-t pt-4">
+                        <p className="text-sm text-slate-600">Product</p>
+                        <p className="font-bold text-[#1f2a30]">{order.product}</p>
                     </div>
-                </div>
-                <div className="border-t pt-4">
-                    <p className="text-sm text-slate-600">Product</p>
-                    <p className="font-bold text-[#1f2a30]">{order.product}</p>
-                </div>
-                <div className="border-t pt-4">
-                    <p className="text-sm text-slate-600">Total Amount</p>
-                    <p className="text-2xl font-bold text-[#1f2a30]">₹{order.totalAmount.toLocaleString()}</p>
+                    <div className="border-t pt-4">
+                        <p className="text-sm text-slate-600">Total Amount</p>
+                        <p className="text-2xl font-bold text-[#1f2a30]">₹{order.totalAmount.toLocaleString()}</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </ProfileGuard>
     );
 }

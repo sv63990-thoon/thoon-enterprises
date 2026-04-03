@@ -5,110 +5,135 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
-import { ArrowLeft, Building2, Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { ArrowLeft, Building2, Loader2, AlertCircle, User, Briefcase, Phone, Mail } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [currentStep, setCurrentStep] = useState(1);
+    const totalSteps = 2;
+    const [otpSent, setOtpSent] = useState(false);
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const [otpVerified, setOtpVerified] = useState(false);
+    
+    const [otpSessionId, setOtpSessionId] = useState('');
     
     const [formData, setFormData] = useState({
-        // Account Details
+        // Basic Details
         name: '',
         email: '',
-        password: '',
-        confirmPassword: '',
-        
-        // Business Details (Common for both roles)
-        companyName: '',
-        gstNumber: '',
-        businessAddress: '',
-        city: '',
-        state: '',
-        pincode: '',
         phone: '',
         
         // Role Selection
-        role: 'buyer' as 'buyer' | 'seller',
-        
-        // Seller-specific fields
-        materialCategories: [] as string[],
-        deliveryAreas: '',
-        businessType: '',
-        yearsInBusiness: '',
-        warehouseLocation: '',
-        
-        // Buyer-specific fields
-        projectType: '',
-        estimatedMaterialRequirement: '',
-        projectLocation: '',
-        constructionStage: ''
+        role: 'buyer' as 'buyer' | 'seller'
     });
 
     const { login } = useAuth();
     const router = useRouter();
 
-    // GST Validation
-    const validateGSTNumber = (gst: string): boolean => {
-        // Indian GST format: 2 digits + [A-Z] + 4 digits + [A-Z] + [A-Z0-9] + 1 digit + [A-Z0-9] + 1 digit
-        const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-        return gstRegex.test(gst.toUpperCase());
-    };
-
-    const validateForm = (): boolean => {
+    const validateCurrentStep = (): boolean => {
         const newErrors: { [key: string]: string } = {};
 
-        // Account Details Validation
-        if (!formData.name.trim()) newErrors.name = 'Full name is required';
-        if (!formData.email.trim()) newErrors.email = 'Email address is required';
-        if (!formData.password) newErrors.password = 'Password is required';
-        if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-        if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-
-        // Business Details Validation
-        if (!formData.companyName.trim()) newErrors.companyName = 'Company name is required';
-        if (!formData.gstNumber.trim()) {
-            newErrors.gstNumber = 'GST number is required';
-        } else if (!validateGSTNumber(formData.gstNumber)) {
-            newErrors.gstNumber = 'Please enter a valid GST number';
-        }
-        if (!formData.businessAddress.trim()) newErrors.businessAddress = 'Business address is required';
-        if (!formData.city.trim()) newErrors.city = 'City is required';
-        if (!formData.state.trim()) newErrors.state = 'State is required';
-        if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required';
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-
-        // Role-specific Validation
-        if (formData.role === 'seller') {
-            if (!formData.materialCategories.length) newErrors.materialCategories = 'At least one material category is required';
-            if (!formData.deliveryAreas.trim()) newErrors.deliveryAreas = 'Delivery areas are required';
-            if (!formData.businessType.trim()) newErrors.businessType = 'Business type is required';
-            if (!formData.yearsInBusiness.trim()) newErrors.yearsInBusiness = 'Years in business is required';
-            if (!formData.warehouseLocation.trim()) newErrors.warehouseLocation = 'Warehouse location is required';
-        } else if (formData.role === 'buyer') {
-            if (!formData.projectType.trim()) newErrors.projectType = 'Project type is required';
-            if (!formData.estimatedMaterialRequirement.trim()) newErrors.estimatedMaterialRequirement = 'Estimated material requirement is required';
-            if (!formData.projectLocation.trim()) newErrors.projectLocation = 'Project location is required';
-            if (!formData.constructionStage.trim()) newErrors.constructionStage = 'Construction stage is required';
+        if (currentStep === 1) {
+            // Role selection only
+            if (!formData.role) newErrors.role = 'Please select a role';
+        } else if (currentStep === 2) {
+            // Basic Details
+            if (!formData.name.trim()) newErrors.name = 'Full name is required';
+            if (!formData.email.trim()) newErrors.email = 'Email address is required';
+            if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (formData.email && !emailRegex.test(formData.email)) {
+                newErrors.email = 'Please enter a valid email address';
+            }
+            
+            // Phone validation (10 digits)
+            const phoneRegex = /^[0-9]{10}$/;
+            if (formData.phone && !phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+                newErrors.phone = 'Please enter a valid 10-digit phone number';
+            }
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const sendOtp = async () => {
+        if (!validateCurrentStep()) return;
         
-        if (!validateForm()) {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobileNumber: formData.phone })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to send OTP');
+            }
+
+            setOtpSent(true);
+            setOtpSessionId(data.sessionId);
+            setErrors({});
+            
+            // Show OTP in development mode
+            if (data.otp) {
+                alert(`OTP sent! For demo: ${data.otp}`);
+            } else {
+                alert('OTP sent successfully!');
+            }
+        } catch (error: any) {
+            alert(error.message || 'Failed to send OTP. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const verifyOtp = async () => {
+        const otpValue = otp.join('');
+        if (otpValue.length !== 6) {
+            setErrors({ otp: 'Please enter a valid 6-digit OTP' });
             return;
         }
 
         setLoading(true);
-
         try {
-            const res = await fetch('/api/auth/register', {
+            const res = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    sessionId: otpSessionId, 
+                    otp: otpValue,
+                    name: formData.name
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'OTP verification failed');
+            }
+
+            setOtpVerified(true);
+            
+            // Now complete the registration with additional details
+            await completeRegistration();
+        } catch (error: any) {
+            setErrors({ otp: error.message || 'OTP verification failed. Please try again.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const completeRegistration = async () => {
+        try {
+            const res = await fetch('/api/auth/register-simple', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -120,561 +145,360 @@ export default function RegisterPage() {
                 throw new Error(data.error || 'Registration failed');
             }
 
-            // Show success message and redirect to login
-            alert('Registration successful! Your account is pending approval. You will receive an email once your account is activated.');
+            alert('Registration successful! Your account has been created and is pending approval.');
             router.push('/login');
         } catch (err: any) {
-            alert(err.message);
-        } finally {
-            setLoading(false);
+            alert(err.message || 'Registration failed. Please try again.');
         }
     };
 
-    const materialCategories = [
-        'Cement', 'Steel', 'Bricks', 'Sand', 'Aggregate', 'Tiles', 
-        'Paint', 'Electrical', 'Plumbing', 'Wood', 'Glass', 'Hardware'
-    ];
+    const handleOtpChange = (index: number, value: string) => {
+        if (value.length > 1) return; // Only allow single digit
+        
+        const newOtp = [...otp];
+        newOtp[index] = value;
+        setOtp(newOtp);
+        
+        // Auto-focus next input
+        if (value && index < 5) {
+            const nextInput = document.getElementById(`otp-${index + 1}`);
+            if (nextInput) (nextInput as HTMLInputElement).focus();
+        }
+    };
 
-    const businessTypes = [
-        'Dealer', 'Distributor', 'Manufacturer'
-    ];
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+            const prevInput = document.getElementById(`otp-${index - 1}`);
+            if (prevInput) (prevInput as HTMLInputElement).focus();
+        }
+    };
 
-    const projectTypes = [
-        'Residential', 'Commercial', 'Infrastructure'
-    ];
+    const handleNext = () => {
+        if (validateCurrentStep()) {
+            if (currentStep < totalSteps) {
+                setCurrentStep(currentStep + 1);
+                setErrors({});
+            }
+        }
+    };
 
-    const constructionStages = [
-        'Planning', 'Foundation', 'Structure', 'Finishing', 'Renovation'
-    ];
+    const handlePrevious = () => {
+        if (currentStep > 1) {
+            setCurrentStep(currentStep - 1);
+            setErrors({});
+            setOtpSent(false);
+            setOtp(['', '', '', '', '', '']);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!otpSent) {
+            await sendOtp();
+        } else {
+            await verifyOtp();
+        }
+    };
+
+    const renderStepIndicator = () => (
+        <div className="flex justify-between items-center mb-8">
+            {[1, 2].map((step) => (
+                <div key={step} className="flex items-center">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                        step <= currentStep 
+                            ? 'bg-[#caa75e] text-white' 
+                            : 'bg-gray-200 text-gray-500'
+                    }`}>
+                        {step < currentStep ? '✓' : step}
+                    </div>
+                    {step < 2 && (
+                        <div className={`flex-1 h-1 mx-2 transition-all ${
+                            step < currentStep ? 'bg-[#caa75e]' : 'bg-gray-200'
+                        }`} />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+
+    const renderStep1 = () => (
+        <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 text-center">Choose Your Role</h3>
+            <p className="text-gray-600 text-center text-sm">How do you want to use Thoon?</p>
+            
+            <div className="space-y-4">
+                <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'buyer' })}
+                    className={`w-full p-6 rounded-2xl border-2 transition-all ${
+                        formData.role === 'buyer' 
+                            ? 'border-[#caa75e] bg-[#caa75e]/5 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                >
+                    <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                            formData.role === 'buyer' ? 'bg-[#caa75e] text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                            <User className="w-6 h-6" />
+                        </div>
+                        <div className="text-left">
+                            <h4 className="font-semibold text-gray-900">I'm a Buyer</h4>
+                            <p className="text-sm text-gray-600">Purchase construction materials</p>
+                        </div>
+                    </div>
+                </button>
+                
+                <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'seller' })}
+                    className={`w-full p-6 rounded-2xl border-2 transition-all ${
+                        formData.role === 'seller' 
+                            ? 'border-[#caa75e] bg-[#caa75e]/5 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                >
+                    <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                            formData.role === 'seller' ? 'bg-[#caa75e] text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                            <Briefcase className="w-6 h-6" />
+                        </div>
+                        <div className="text-left">
+                            <h4 className="font-semibold text-gray-900">I'm a Seller</h4>
+                            <p className="text-sm text-gray-600">Supply construction materials</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+            {errors.role && (
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.role}
+                </p>
+            )}
+        </div>
+    );
+
+    const renderStep2 = () => (
+        <div className="space-y-6">
+            {!otpSent ? (
+                <>
+                    <h3 className="text-xl font-bold text-gray-900 text-center">Basic Details</h3>
+                    <p className="text-gray-600 text-center text-sm">Enter your information to continue</p>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    className={`w-full pl-10 pr-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#caa75e] focus:border-transparent ${
+                                        errors.name ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    placeholder="Enter your full name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                />
+                            </div>
+                            {errors.name && (
+                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="h-4 w-4" />
+                                    {errors.name}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                <input
+                                    type="email"
+                                    className={`w-full pl-10 pr-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#caa75e] focus:border-transparent ${
+                                        errors.email ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    placeholder="Enter your email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                />
+                            </div>
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="h-4 w-4" />
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                <input
+                                    type="tel"
+                                    className={`w-full pl-10 pr-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#caa75e] focus:border-transparent ${
+                                        errors.phone ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    placeholder="Enter 10-digit mobile number"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                                    maxLength={10}
+                                />
+                            </div>
+                            {errors.phone && (
+                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="h-4 w-4" />
+                                    {errors.phone}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <h3 className="text-xl font-bold text-gray-900 text-center">Verify OTP</h3>
+                    <p className="text-gray-600 text-center text-sm">
+                        We've sent a 6-digit OTP to {formData.phone}
+                    </p>
+                    
+                    <div className="space-y-6">
+                        <div className="flex justify-center gap-2">
+                            {otp.map((digit, index) => (
+                                <input
+                                    key={index}
+                                    id={`otp-${index}`}
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={1}
+                                    className={`w-12 h-12 text-center text-lg font-semibold border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#caa75e] focus:border-transparent ${
+                                        errors.otp ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    value={digit}
+                                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                />
+                            ))}
+                        </div>
+                        
+                        {errors.otp && (
+                            <p className="text-sm text-red-600 flex items-center justify-center gap-1">
+                                <AlertCircle className="h-4 w-4" />
+                                {errors.otp}
+                            </p>
+                        )}
+                        
+                        <div className="text-center">
+                            <button
+                                type="button"
+                                className="text-sm text-[#caa75e] hover:text-[#b89653] font-medium"
+                                onClick={() => {
+                                    setOtpSent(false);
+                                    setOtp(['', '', '', '', '', '']);
+                                    setOtpSessionId('');
+                                }}
+                            >
+                                Change phone number
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+
+    const renderCurrentStep = () => {
+        switch (currentStep) {
+            case 1: return renderStep1();
+            case 2: return renderStep2();
+            default: return renderStep1();
+        }
+    };
 
     return (
-        <div className="min-h-screen bg-indigo-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#312e81_1px,transparent_1px),linear-gradient(to_bottom,#312e81_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30" />
-            <div className="absolute -top-24 -left-24 w-96 h-96 bg-amber-400/10 rounded-full blur-[120px]" />
-
-            <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-                <Link href="/" className="flex items-center justify-center gap-2 mb-8 text-white group">
-                    <ArrowLeft className="h-4 w-4 text-white/40 group-hover:text-amber-400 transition-colors" />
-                    <span className="text-xs font-black uppercase tracking-widest text-white/40 group-hover:text-amber-400">Back to Home</span>
-                </Link>
-
-                <div className="flex justify-center mb-6">
-                    <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-400 backdrop-blur-sm shadow-2xl">
-                        <Building2 className="h-10 w-10" />
-                    </div>
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-amber-50">
+            {/* Header */}
+            <div className="bg-white shadow-sm border-b border-gray-100">
+                <div className="max-w-md mx-auto px-4 py-4">
+                    <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-[#caa75e] transition-colors">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="text-sm font-medium">Back</span>
+                    </Link>
                 </div>
-                <h2 className="text-center text-4xl font-black text-white uppercase tracking-tighter">
-                    Join <span className="text-amber-400">Thoon</span>
-                </h2>
-                <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
-                    Revolutionize <span className="text-white/60">Construction Procurement</span>
-                </p>
             </div>
 
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-4xl relative z-10">
-                <Card className="border-white/10 bg-white shadow-2xl rounded-3xl overflow-hidden">
-                    <CardBody className="p-8">
-                        <form className="space-y-8" onSubmit={handleSubmit}>
-                            {/* Role Selection */}
-                            <div className="flex bg-slate-100 p-1 rounded-lg">
-                                <button
+            {/* Main Content */}
+            <div className="max-w-md mx-auto px-4 py-8">
+                {/* Logo and Title */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#caa75e] to-[#b89653] rounded-2xl shadow-lg mb-4">
+                        <Building2 className="h-8 w-8 text-white" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                        Join <span className="text-[#caa75e]">Thoon</span>
+                    </h1>
+                    <p className="text-sm text-gray-600">
+                        Revolutionize Construction Procurement
+                    </p>
+                </div>
+
+                {/* Progress Card */}
+                <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
+                    <CardBody className="p-6">
+                        {renderStepIndicator()}
+                        {renderCurrentStep()}
+                        
+                        {/* Navigation Buttons */}
+                        <div className="flex gap-3 mt-8">
+                            {currentStep > 1 && (
+                                <Button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, role: 'buyer' })}
-                                    className={`flex-1 py-3 text-sm font-medium rounded-md transition-all ${formData.role === 'buyer' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    variant="outline"
+                                    onClick={handlePrevious}
+                                    className="flex-1 py-3 border-gray-300 text-gray-700 hover:bg-gray-50"
                                 >
-                                    I am a Buyer
-                                </button>
-                                <button
+                                    Previous
+                                </Button>
+                            )}
+                            
+                            {currentStep < totalSteps ? (
+                                <Button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, role: 'seller' })}
-                                    className={`flex-1 py-3 text-sm font-medium rounded-md transition-all ${formData.role === 'seller' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    onClick={handleNext}
+                                    className="flex-1 py-3 bg-[#caa75e] hover:bg-[#b89653] text-white font-medium"
                                 >
-                                    I am a Seller
-                                </button>
-                            </div>
-
-                            {/* Section 1 — Account Details */}
-                            <div className="space-y-6">
-                                <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2">
-                                    Account Details
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Full Name *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.name ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        />
-                                        {errors.name && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.name}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Email Address *</label>
-                                        <input
-                                            type="email"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.email ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        />
-                                        {errors.email && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.email}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Password *</label>
-                                        <div className="relative mt-1">
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.password ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.password}
-                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            />
-                                            <button
-                                                type="button"
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                            >
-                                                {showPassword ? (
-                                                    <EyeOff className="h-5 w-5" />
-                                                ) : (
-                                                    <Eye className="h-5 w-5" />
-                                                )}
-                                            </button>
-                                        </div>
-                                        {errors.password && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.password}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Confirm Password *</label>
-                                        <div className="relative mt-1">
-                                            <input
-                                                type={showConfirmPassword ? "text" : "password"}
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.confirmPassword ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.confirmPassword}
-                                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                            />
-                                            <button
-                                                type="button"
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            >
-                                                {showConfirmPassword ? (
-                                                    <EyeOff className="h-5 w-5" />
-                                                ) : (
-                                                    <Eye className="h-5 w-5" />
-                                                )}
-                                            </button>
-                                        </div>
-                                        {errors.confirmPassword && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.confirmPassword}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Section 2 — Business Details */}
-                            <div className="space-y-6">
-                                <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2">
-                                    Business Details
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Company / Business Name *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.companyName ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.companyName}
-                                            onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                                        />
-                                        {errors.companyName && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.companyName}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">GST Number *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            placeholder="e.g., 22AAAAA0000A1Z5"
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.gstNumber ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.gstNumber}
-                                            onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value.toUpperCase() })}
-                                        />
-                                        {errors.gstNumber && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.gstNumber}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Phone Number *</label>
-                                        <input
-                                            type="tel"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.phone ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        />
-                                        {errors.phone && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.phone}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">City *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.city ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.city}
-                                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                        />
-                                        {errors.city && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.city}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">State *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.state ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.state}
-                                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                                        />
-                                        {errors.state && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.state}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Pincode *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.pincode ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.pincode}
-                                            onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                                        />
-                                        {errors.pincode && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.pincode}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">Business Address *</label>
-                                        <textarea
-                                            required
-                                            rows={3}
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.businessAddress ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.businessAddress}
-                                            onChange={(e) => setFormData({ ...formData, businessAddress: e.target.value })}
-                                        />
-                                        {errors.businessAddress && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.businessAddress}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">State *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                errors.state ? 'border-red-500' : 'border-slate-300'
-                                            }`}
-                                            value={formData.state}
-                                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                                        />
-                                        {errors.state && (
-                                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-4 w-4" />
-                                                {errors.state}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Section 3 — Role-Specific Information */}
-                            <div className="space-y-6">
-                                <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2">
-                                    {formData.role === 'buyer' ? 'Buyer Information' : 'Seller Information'}
-                                </h3>
-                                
-                                {formData.role === 'seller' ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Material Categories *</label>
-                                            <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3 bg-slate-50">
-                                                {materialCategories.map((category) => (
-                                                    <label key={category} className="flex items-center space-x-2 cursor-pointer hover:bg-slate-100 p-1 rounded">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.materialCategories.includes(category)}
-                                                            onChange={(e) => {
-                                                                if (e.target.checked) {
-                                                                    setFormData({
-                                                                        ...formData,
-                                                                        materialCategories: [...formData.materialCategories, category]
-                                                                    });
-                                                                } else {
-                                                                    setFormData({
-                                                                        ...formData,
-                                                                        materialCategories: formData.materialCategories.filter(c => c !== category)
-                                                                    });
-                                                                }
-                                                            }}
-                                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                                        />
-                                                        <span className="text-sm">{category}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                            {errors.materialCategories && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.materialCategories}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Delivery Areas *</label>
-                                            <textarea
-                                                required
-                                                rows={3}
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.deliveryAreas ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.deliveryAreas}
-                                                onChange={(e) => setFormData({ ...formData, deliveryAreas: e.target.value })}
-                                                placeholder="e.g., Chennai, Delhi, NCR, Mumbai, Pune"
-                                            />
-                                            {errors.deliveryAreas && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.deliveryAreas}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Business Type *</label>
-                                            <select
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.businessType ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.businessType}
-                                                onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-                                            >
-                                                <option value="">Select business type</option>
-                                                {businessTypes.map((type) => (
-                                                    <option key={type} value={type}>{type}</option>
-                                                ))}
-                                            </select>
-                                            {errors.businessType && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.businessType}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Years in Business *</label>
-                                            <input
-                                                type="number"
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.yearsInBusiness ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.yearsInBusiness}
-                                                onChange={(e) => setFormData({ ...formData, yearsInBusiness: e.target.value })}
-                                                placeholder="e.g., 5"
-                                            />
-                                            {errors.yearsInBusiness && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.yearsInBusiness}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Warehouse / Store Location *</label>
-                                            <textarea
-                                                required
-                                                rows={2}
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.warehouseLocation ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.warehouseLocation}
-                                                onChange={(e) => setFormData({ ...formData, warehouseLocation: e.target.value })}
-                                                placeholder="e.g., Industrial Area, Phase 1, Chennai"
-                                            />
-                                            {errors.warehouseLocation && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.warehouseLocation}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Project Type *</label>
-                                            <select
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.projectType ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.projectType}
-                                                onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                                            >
-                                                <option value="">Select project type</option>
-                                                {projectTypes.map((type) => (
-                                                    <option key={type} value={type}>{type}</option>
-                                                ))}
-                                            </select>
-                                            {errors.projectType && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.projectType}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Estimated Material Requirement *</label>
-                                            <textarea
-                                                required
-                                                rows={3}
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.estimatedMaterialRequirement ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.estimatedMaterialRequirement}
-                                                onChange={(e) => setFormData({ ...formData, estimatedMaterialRequirement: e.target.value })}
-                                                placeholder="e.g., 100 tons of cement, 50 tons of steel per month"
-                                            />
-                                            {errors.estimatedMaterialRequirement && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.estimatedMaterialRequirement}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Project Location *</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.projectLocation ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.projectLocation}
-                                                onChange={(e) => setFormData({ ...formData, projectLocation: e.target.value })}
-                                                placeholder="e.g., Chennai, Banglore"
-                                            />
-                                            {errors.projectLocation && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.projectLocation}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Construction Stage *</label>
-                                            <select
-                                                required
-                                                className={`appearance-none block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                                                    errors.constructionStage ? 'border-red-500' : 'border-slate-300'
-                                                }`}
-                                                value={formData.constructionStage}
-                                                onChange={(e) => setFormData({ ...formData, constructionStage: e.target.value })}
-                                            >
-                                                <option value="">Select construction stage</option>
-                                                {constructionStages.map((stage) => (
-                                                    <option key={stage} value={stage}>{stage}</option>
-                                                ))}
-                                            </select>
-                                            {errors.constructionStage && (
-                                                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    {errors.constructionStage}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <Button type="submit" className="w-full h-14 bg-[#caa75e] hover:bg-[#b89653] text-white border-none shadow-[0_8px_24px_rgba(202,167,94,0.3)] rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all hover:-translate-y-0.5 active:scale-95" disabled={loading}>
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Creating {formData.role === 'buyer' ? 'Buyer' : 'Seller'} Account...
-                                    </>
-                                ) : `Create ${formData.role === 'buyer' ? 'Buyer' : 'Seller'} Account`}
-                            </Button>
-                        </form>
+                                    Next
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="submit"
+                                    onClick={handleSubmit}
+                                    disabled={loading}
+                                    className="flex-1 py-3 bg-[#caa75e] hover:bg-[#b89653] text-white font-medium"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            {!otpSent ? 'Sending OTP...' : 'Verifying...'}
+                                        </>
+                                    ) : (
+                                        !otpSent ? 'Send OTP' : 'Verify & Register'
+                                    )}
+                                </Button>
+                            )}
+                        </div>
                     </CardBody>
                 </Card>
+
+                {/* Footer */}
+                <div className="text-center mt-6 text-sm text-gray-600">
+                    Already have an account?{' '}
+                    <Link href="/login" className="text-[#caa75e] hover:text-[#b89653] font-medium">
+                        Sign in
+                    </Link>
+                </div>
             </div>
         </div>
     );

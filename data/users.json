@@ -8,7 +8,7 @@
       "status": "active",
       "passwordHash": "57c71818ee06307b311d146caf0d228671fcb965261abe7e1e91a7ee92fa67bb68001c663722cf314600b1233a0ce5d368160c64e09943790878d8457d4169ad",
       "salt": "d75dc4976a4786d1b6476484f8449ca5ca0b4db59460caaddb942e5d49797ffc",
-      "lastLogin": "2026-03-22T18:46:54.774Z"
+      "lastLogin": "2026-03-30T20:05:23.253Z"
     },
     {
       "id": "1abd902b-a357-4639-bc6a-fa9eee5b7291",
@@ -287,6 +287,22 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "53e8998c-f902-4acd-9b57-f06b38612c4e",
+      "userId": "b0199355-9a33-4ef3-92d7-23403e33965d",
+      "userName": "thoon_admin",
+      "action": "Login",
+      "details": "Successfully logged into admin dashboard",
+      "timestamp": "2026-03-30T20:05:23.257Z"
+    },
+    {
+      "id": "f6e9143c-b4a5-469b-97fa-1a37f8505fa7",
+      "userId": "b0199355-9a33-4ef3-92d7-23403e33965d",
+      "userName": "thoon_admin",
+      "action": "Login",
+      "details": "Successfully logged into admin dashboard",
+      "timestamp": "2026-03-26T06:45:03.202Z"
+    },
     {
       "id": "d8eef48b-2471-43ee-8d43-1ec465b9d0ee",
       "userId": "b0199355-9a33-4ef3-92d7-23403e33965d",
