@@ -16,7 +16,8 @@ import {
   Building2,
   Users,
   DollarSign,
-  Receipt
+  Receipt,
+  User
 } from 'lucide-react';
 
 export function PremiumNavbar() {
@@ -29,6 +30,7 @@ export function PremiumNavbar() {
     { name: 'Orders', href: '/orders', icon: ShoppingCart },
     { name: 'Billing', href: '/billing', icon: FileText },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Profile', href: '/profile', icon: User },
   ];
 
   const adminNavigation = [
@@ -109,12 +111,20 @@ export function PremiumNavbar() {
                 </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="btn-primary"
-              >
-                Sign In
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/register-otp"
+                  className="btn-secondary"
+                >
+                  Join Now
+                </Link>
+                <Link
+                  href="/login"
+                  className="btn-primary"
+                >
+                  Sign In
+                </Link>
+              </div>
             )}
 
             {/* Mobile menu button */}
@@ -167,6 +177,25 @@ export function PremiumNavbar() {
                   <LogOut className="h-4 w-4 mr-3" />
                   Sign Out
                 </button>
+              )}
+              
+              {!isAuthenticated && (
+                <div className="pt-2 mt-2 border-t border-white/20 space-y-2">
+                  <Link
+                    href="/register-otp"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full flex items-center px-3 py-2 text-sm font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-lg transition-all duration-200"
+                  >
+                    Join Now
+                  </Link>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full flex items-center px-3 py-2 text-sm font-medium text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+                  >
+                    Sign In
+                  </Link>
+                </div>
               )}
             </div>
           </div>
