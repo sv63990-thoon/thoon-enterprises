@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db } from '@/lib/prisma-db';
 import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         }
 
         // Check if email already exists
-        const existingUser = db.findUserByEmail(email.toLowerCase().trim());
+        const existingUser = await db.findUserByEmail(email.toLowerCase().trim());
         if (existingUser) {
             return NextResponse.json(
                 { error: 'Email already registered' },
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         }
 
         // Create user with pending status
-        const user = db.createUser(name, email.toLowerCase().trim(), password, role, {
+        const user = await db.createUser(name, email.toLowerCase().trim(), password, role, {
             phone,
             companyName,
             address: businessAddress,
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
         };
 
         // Log registration
-        db.logAction(user.id, 'Register', `New ${role} account created: ${name} (${email}) - Status: pending approval`);
+        await db.logAction(user.id, 'Register', `New ${role} account created: ${name} (${email}) - Status: pending approval`);
 
         // Send registration email to user
         await sendRegistrationEmail(email, name, role);

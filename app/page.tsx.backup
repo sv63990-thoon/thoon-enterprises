@@ -33,20 +33,12 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log('Fetching data from APIs...');
         const [ordersRes, stocksRes, deliveriesRes, metricsRes] = await Promise.all([
           fetch('/api/orders'),
           fetch('/api/stocks'),
           fetch('/api/deliveries'),
           fetch('/api/dashboard')
         ]);
-
-        console.log('API Responses:', {
-          orders: ordersRes.status,
-          stocks: stocksRes.status,
-          deliveries: deliveriesRes.status,
-          dashboard: metricsRes.status
-        });
 
         const [ordersData, stocksData, deliveriesData, metricsData] = await Promise.all([
           ordersRes.json(),
@@ -55,17 +47,9 @@ export default function Home() {
           metricsRes.json()
         ]);
 
-        console.log('Fetched data:', {
-          orders: ordersData,
-          stocks: stocksData,
-          deliveries: deliveriesData,
-          metrics: metricsData
-        });
-
-        // Set data with fallbacks for empty arrays
-        setOrders(ordersData.length > 0 ? ordersData : []);
-        setStocks(stocksData.length > 0 ? stocksData : []);
-        setDeliveries(deliveriesData.length > 0 ? deliveriesData : []);
+        setOrders(ordersData);
+        setStocks(stocksData);
+        setDeliveries(deliveriesData);
         setMetrics(metricsData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -135,7 +119,6 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-[0.04]" />
       <div className="absolute top-0 left-0 w-96 h-96 bg-slate-400/3 rounded-full blur-[120px]" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/3 rounded-full blur-[150px]" />
-      
       {/* Hero Section */}
       <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-7xl mx-auto text-center">
@@ -212,7 +195,7 @@ export default function Home() {
             />
             <MetricCard
               title="Customer Satisfaction"
-              value="4.9"
+              value="4.9★"
               change="+0.3"
               icon={Users}
               trend="up"
@@ -244,13 +227,11 @@ export default function Home() {
                 Preview our powerful dashboard features designed for construction industry professionals
               </p>
             </div>
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-10">
             <div className="lg:col-span-2 xl:col-span-1">
               <MetricCard
                 title="Today's Orders"
-                value={loading ? "..." : (metrics as any).todaysOrders || "0"}
+                value={loading ? "..." : metrics.todaysOrders || "0"}
                 change="+12%"
                 icon={ShoppingCart}
                 trend="up"
@@ -259,7 +240,7 @@ export default function Home() {
             <div className="lg:col-span-2 xl:col-span-1">
               <MetricCard
                 title="Pending Deliveries"
-                value={loading ? "..." : (metrics as any).pendingDeliveries || "0"}
+                value={loading ? "..." : metrics.pendingDeliveries || "0"}
                 change="-2%"
                 icon={Clock}
                 trend="down"
@@ -268,7 +249,7 @@ export default function Home() {
             <div className="lg:col-span-2 xl:col-span-1">
               <MetricCard
                 title="Sales Value"
-                value={loading ? "..." : `Rs. ${(((metrics as any).salesValue || 0) / 100000).toFixed(1)}L`}
+                value={loading ? "..." : `Rs. ${((metrics.salesValue || 0) / 100000).toFixed(1)}L`}
                 change="+18%"
                 icon={DollarSign}
                 trend="up"
@@ -277,7 +258,7 @@ export default function Home() {
             <div className="lg:col-span-2 xl:col-span-1">
               <MetricCard
                 title="Active Users"
-                value={loading ? "..." : (metrics as any).activeUsers || "0"}
+                value={loading ? "..." : metrics.activeUsers || "0"}
                 change="+8%"
                 icon={Users}
                 trend="up"
@@ -491,32 +472,26 @@ function RecentOrdersWidget({ orders }: { orders: any[] }) {
       </CardHeader>
       <CardBody>
         <div className="space-y-3">
-          {orders.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-slate-500 text-sm">No orders found</p>
-            </div>
-          ) : (
-            orders.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 rounded-full bg-slate-50/80 flex items-center justify-center group-hover:bg-[#caa75e]/10 transition-colors duration-300">
-                    <ShoppingCart className="h-4 w-4 text-[#1f2a30] group-hover:text-[#caa75e] transition-colors duration-300" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#1f2a30]">{order.customer}</p>
-                    <p className="text-xs text-slate-500">{order.date}</p>
-                  </div>
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="h-8 w-8 rounded-full bg-slate-50/80 flex items-center justify-center group-hover:bg-[#caa75e]/10 transition-colors duration-300">
+                  <ShoppingCart className="h-4 w-4 text-[#1f2a30] group-hover:text-[#caa75e] transition-colors duration-300" />
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-[#1f2a30]">{order.amount}</p>
-                  <p className="text-xs text-slate-500">{order.items} items</p>
+                <div>
+                  <p className="text-sm font-bold text-[#1f2a30]">{order.customer}</p>
+                  <p className="text-xs text-slate-500">{order.date}</p>
                 </div>
               </div>
-            ))
-          )}
+              <div className="text-right">
+                <p className="text-sm font-bold text-[#1f2a30]">{order.amount}</p>
+                <p className="text-xs text-slate-500">{order.items} items</p>
+              </div>
+            </div>
+          ))}
         </div>
       </CardBody>
     </Card>
@@ -538,8 +513,8 @@ function StockSummaryWidget({ stocks }: { stocks: any[] }) {
     }
   };
 
-  const lowStockItems = stocks.filter((item: any) => item.status === 'low-stock').length;
-  const outOfStockItems = stocks.filter((item: any) => item.status === 'out-of-stock').length;
+  const lowStockItems = stocks.filter(item => item.status === 'low-stock').length;
+  const outOfStockItems = stocks.filter(item => item.status === 'out-of-stock').length;
 
   return (
     <Card className="hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 bg-white/95 backdrop-blur-sm border border-slate-200/60 rounded-2xl">
@@ -563,7 +538,7 @@ function StockSummaryWidget({ stocks }: { stocks: any[] }) {
       </CardHeader>
       <CardBody>
         <div className="space-y-2">
-          {stocks.slice(0, 5).map((stock: any, index: number) => (
+          {stocks.slice(0, 5).map((stock, index) => (
             <div
               key={index}
               className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-all duration-200 group"
@@ -623,34 +598,28 @@ function PendingDeliveriesWidget({ deliveries }: { deliveries: any[] }) {
       </CardHeader>
       <CardBody>
         <div className="space-y-3">
-          {deliveries.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-slate-500 text-sm">No pending deliveries</p>
-            </div>
-          ) : (
-            deliveries.map((delivery: any) => (
-              <div
-                key={delivery.id}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-                    <Truck className="h-4 w-4 text-amber-600 group-hover:text-amber-700 transition-colors" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#1f2a30]">{delivery.customer}</p>
-                    <p className="text-xs text-slate-500">{delivery.location}</p>
-                  </div>
+          {deliveries.map((delivery) => (
+            <div
+              key={delivery.id}
+              className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                  <Truck className="h-4 w-4 text-amber-600 group-hover:text-amber-700 transition-colors" />
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-medium text-slate-500">{delivery.estimatedTime}</p>
-                  <p className={`text-xs font-medium px-2 py-0.5 rounded-full inline-block ${getPriorityColor(delivery.priority)}`}>
-                    {delivery.priority}
-                  </p>
+                <div>
+                  <p className="text-sm font-bold text-[#1f2a30]">{delivery.customer}</p>
+                  <p className="text-xs text-slate-500">{delivery.location}</p>
                 </div>
               </div>
-            ))
-          )}
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500">{delivery.estimatedTime}</p>
+                <p className={`text-xs font-medium px-2 py-0.5 rounded-full inline-block ${getPriorityColor(delivery.priority)}`}>
+                  {delivery.priority}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </CardBody>
     </Card>

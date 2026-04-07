@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db } from '@/lib/prisma-db';
 
 export async function POST(request: Request) {
     try {
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const user = db.validateUser(email, password);
+        const user = await db.validateUser(email, password);
 
         if (!user) {
             return NextResponse.json(
@@ -22,8 +22,8 @@ export async function POST(request: Request) {
         }
 
         // Update last login & Log action
-        db.updateLastLogin(user.id);
-        db.logAction(user.id, 'Login', `Successfully logged into ${user.role} dashboard`);
+        await db.updateLastLogin(user.id);
+        await db.logAction(user.id, 'Login', `Successfully logged into ${user.role} dashboard`);
 
         // In a real app, we'd set a HttpOnly cookie here.
         // For this local demo, we'll return the user info to store in context/localStorage.

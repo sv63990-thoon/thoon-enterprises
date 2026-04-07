@@ -1,27 +1,33 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db } from '@/lib/prisma-db';
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const reqId = searchParams.get('reqId');
+    try {
+        const { searchParams } = new URL(request.url);
+        const reqId = searchParams.get('reqId');
 
-    if (reqId) {
-        if (searchParams.get('best') === 'true') {
-            const best = db.getBestQuoteForRequirement(reqId);
-            return NextResponse.json(best ? [best] : []);
+        if (reqId) {
+            if (searchParams.get('best') === 'true') {
+                const best = await db.getBestQuoteForRequirement(reqId);
+                return NextResponse.json(best ? [best] : []);
+            }
+            const quotes = await db.getQuotesForRequirement(reqId);
+            return NextResponse.json(quotes);
         }
-        return NextResponse.json(db.getQuotesForRequirement(reqId));
+        const allQuotes = await db.getQuotes();
+        return NextResponse.json(allQuotes);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json(db.getQuotes());
 }
 
 export async function POST(request: Request) {
     try {
         const { reqId, sellerId, sellerName, sellerPrice } = await request.json();
-        const quote = db.submitQuote(reqId, sellerId, sellerName, Number(sellerPrice));
+        const quote = await db.submitQuote(reqId, sellerId, sellerName, Number(sellerPrice));
 
         // Log activity
-        db.logAction(sellerId, 'Submit Quote', `Quoted ₹${sellerPrice.toLocaleString()} for requirement ID: ${reqId.slice(0, 8)}`);
+        await db.logAction(sellerId, 'Submit Quote', `Quoted ${sellerPrice.toLocaleString()} for requirement ID: ${reqId.slice(0, 8)}`);
 
         return NextResponse.json(quote);
     } catch (error: any) {

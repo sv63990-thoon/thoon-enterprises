@@ -1,0 +1,249 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  role              UserRole
+  status            UserStatus @default(pending)
+  passwordHash      String
+  salt              String
+  phone             String?
+  companyName       String?
+  address           String?
+  gstin             String?
+  rating            Float    @default(0)
+  experienceYears   Int      @default(0)
+  subscriptionTier  String   @default("basic")
+  lastLogin         DateTime?
+  lastOrderDate     DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  requirements      Requirement[]
+  quotes           Quote[]
+  ordersAsBuyer    Order[]  @relation("BuyerOrders")
+  ordersAsSeller   Order[]  @relation("SellerOrders")
+  auditLogs        AuditLog[]
+  margins          CategoryMargin[]
+
+  @@map("users")
+}
+
+model CategoryMargin {
+  id         String   @id @default(uuid())
+  category   String   @unique
+  marginType String   // 'percent' | 'fixed'
+  value      Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  createdById String?
+  createdBy  User?    @relation(fields: [createdById], references: [id])
+
+  @@map("category_margins")
+}
+
+model Requirement {
+  id               String           @id @default(uuid())
+  buyerId          String
+  buyerName        String
+  product          String
+  category         String
+  brand            String
+  quantity         Int
+  unit             String
+  status           RequirementStatus @default(pending)
+  deliveryLocation String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  buyer            User             @relation(fields: [buyerId], references: [id])
+  quotes           Quote[]
+
+  @@map("requirements")
+}
+
+model Quote {
+  id           String   @id @default(uuid())
+  reqId        String
+  sellerId     String
+  sellerName   String
+  sellerPrice  Float
+  thoonMargin  Float
+  finalPrice   Float
+  status       String   @default("submitted")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  requirement  Requirement @relation(fields: [reqId], references: [id])
+  seller       User        @relation(fields: [sellerId], references: [id])
+  orders       Order[]
+
+  @@map("quotes")
+}
+
+model MarketPrice {
+  id          String      @id @default(uuid())
+  category    MarketCategory
+  brand       String
+  price       Float
+  unit        String
+  change      Float
+  lastUpdated DateTime   @default(now())
+
+  @@map("market_prices")
+}
+
+model Order {
+  id                  String      @id @default(uuid())
+  orderNumber         String      @unique
+  reqId               String
+  quoteId             String
+  buyerId             String
+  buyerName           String
+  sellerId            String
+  sellerName          String
+  product             String
+  category            String
+  quantity            Int
+  unit                String
+  totalPrice          Float
+  status              OrderStatus @default(processing)
+  deliveryDate        String
+  deliveryLocation    String
+  deliveryInstructions String?
+  rating              Float?
+  feedback            String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  quote               Quote       @relation(fields: [quoteId], references: [id])
+  buyer               User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  seller              User        @relation("SellerOrders", fields: [sellerId], references: [id])
+  orderHistory        OrderHistory[]
+
+  @@map("orders")
+}
+
+model OrderHistory {
+  id        String   @id @default(uuid())
+  orderId   String
+  status    String
+  timestamp DateTime @default(now())
+
+  // Relations
+  order     Order    @relation(fields: [orderId], references: [id])
+
+  @@map("order_history")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  userName  String
+  action    String
+  details   String
+  timestamp DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Estimate {
+  id           String         @id @default(uuid())
+  billingNo    String         @unique
+  date         String
+  customerName String
+  phone        String
+  area         String
+  items        EstimateItem[]
+  deliveryCharge Float          @default(0)
+  subtotal     Float
+  gstEnabled   Boolean         @default(false)
+  gstAmount    Float          @default(0)
+  roundOff     Float          @default(0)
+  totalAmount  Float
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("estimates")
+}
+
+model EstimateItem {
+  id        String   @id @default(uuid())
+  sno       Int
+  category  String
+  size      String
+  type      String
+  quantity  Int
+  units     String
+  rate      Float
+  amount    Float
+  estimateId String
+
+  // Relations
+  estimate   Estimate @relation(fields: [estimateId], references: [id])
+
+  @@map("estimate_items")
+}
+
+model SystemConfig {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+// Enums
+enum UserRole {
+  admin
+  buyer
+  seller
+}
+
+enum UserStatus {
+  pending
+  active
+  rejected
+}
+
+enum RequirementStatus {
+  pending
+  estimated
+  closed
+}
+
+enum OrderStatus {
+  processing
+  shipped
+  delivered
+}
+
+enum MarketCategory {
+  Steel
+  Cement
+  AAC_Blocks
+  Bricks
+  Sand_Aggregates
+}
